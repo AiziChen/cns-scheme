@@ -1,7 +1,8 @@
 #!chezscheme
 (library (cipher)
   (export
-   xor-cipher!)
+    decrypt-host
+    xor-cipher!)
   (import
    (chezscheme)
    (swish base64)
@@ -22,9 +23,9 @@
               (bitwise-xor
                (bitwise-ior (char->integer (string-ref secret rem)) rem)
                b)))))]))
-  (define (decrypt-host bvhost)
+  (define (decrypt-host bvhost secret)
     (let ([host (base64-decode-bytevector bvhost)])
-      (car (xor-cipher! host)))))
+      (car (xor-cipher! host secret)))))
 
 #!eof mats
 (import

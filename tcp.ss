@@ -40,8 +40,9 @@
     (let ([start (bytevector-u8-index bv (string->bytevector/utf-8 (get-proxy-key)))])
       (if start
           (let ([end (bytevector-u8-index bv start (string->bytevector/utf-8 "\r"))])
-            (if (and start end)
-                (let ([host-port (subbytevector bv start end)])
-                  (pregexp-split ":" host-port))
+            (if end
+                (let* ([host-port (subbytevector bv start end)]
+                       [dehost-port (decrypt-host host-port (get-secret))])
+                  (pregexp-split ":" dehost-port))
                 #f))
           #f))))
