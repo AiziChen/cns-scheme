@@ -6,7 +6,7 @@
  (udp))
 
 ;;; Process the data
-(define (process ip op bv)
+(define (mprocess ip op bv)
   (cond
    [(http-header? bv)
     (printf "handle http request...~n")
@@ -14,8 +14,8 @@
     (put-bytevector op (response-header bv))
     (flush-output-port op)
     ;; handle connection
-    (let ([udp-flag (string->bytevector/utf-8 (get-udp-flag))])
-      (unless (contains bytevector-u8-ref bv udp-flag (bytevector-length udp-flag) (string-length (get-udp-flag)))
+    (let ([http-flag (string->bytevector/utf-8 (get-http-flag))])
+      (unless (contains bytevector-u8-ref bv http-flag (bytevector-length http-flag) (string-length (get-http-flag)))
         (process-tcpsession ip op bv)))]
    [else
     (printf "handle udp request...~n")
@@ -45,7 +45,7 @@
       [#(data ,bv)
        ;;(put-bytevector op bv)
        ;;(flush-output-port op)
-       (process ip op bv)
+       (mprocess ip op bv)
        `#(no-reply ,state)]))
   (gen-server:start&link #f))
 
@@ -73,11 +73,37 @@
        `#(stop ,msg ,state)]))
   (gen-server:start&link 'mserver))
 
-(app-sup-spec
-  (append
+
+(define (run-app config-file)
+  ;; setup the configuration
+  (set-config! config-file)
+  ;; app supervisor specials
+  (app-sup-spec
+   (append
     (make-swish-sup-spec (list swish-event-logger))
     `(#(mserver ,start-server:start&link permanent 1000 worker))))
+  ;; start app
+  (app:start)
+  (receive))
 
-(app:start)
-(receive)
+(define app-cli
+  (cli-specs
+   default-help
+   [config-file -c --config-file (string "<file>") "specify the configuration file.
+if not specify, default use `config.ss`"]
+    [version -v --version bool "display version"]))
+
+(let ([opt (parse-command-line-arguments app-cli)])
+  (when (opt 'help)
+    (display-help "cns-scheme" app-cli)
+    (exit 0))
+  (when (opt 'version)
+    (printf "0.01~n")
+    (exit 0))
+  (cond
+   [(opt 'config-file)
+    (run-app (opt 'config-file))]
+   [else
+    ;;(printf "use default configuration file `config.ss`~n")
+     (run-app "config.ss")]))
 

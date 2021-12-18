@@ -6,9 +6,7 @@
    (chezscheme)
    (cipher)
    (common)
-   (swish erlang)
    (swish imports)
-   (swish io)
    (tools))
 
   (define (process-tcpsession ip op bv)

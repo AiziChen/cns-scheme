@@ -8,22 +8,22 @@
     get-port
     get-proxy-key
     get-secret
-    get-udp-flag)
+    get-http-flag)
   (import
    (chezscheme)
    (tools))
 
   (define *host* "::")
-  (define *port* 1081)
+  (define *port* 520)
   (define *proxy-key* "Meng")
-  (define *secret* "1234")
-  (define *udp-flag* "httpUDP")
+  (define *secret* "1234Abc")
+  (define *http-flag* "httpUDP")
 
   (define (get-host) *host*)
   (define (get-port) *port*)
   (define (get-proxy-key) *proxy-key*)
   (define (get-secret) *secret*)
-  (define (get-udp-flag) *udp-flag*)
+  (define (get-http-flag) *http-flag*)
 
   ;;; setting up global configurations
   (define (set-config! file)
@@ -32,7 +32,7 @@
       (set! *port* (cdr (assoc 'port ss)))
       (set! *proxy-key* (cdr (assoc 'proxy-key ss)))
       (set! *secret* (cdr (assoc 'secret ss)))
-      (set! *udp-flag* (cdr (assoc 'udp-flag ss)))))
+      (set! *http-flag* (cdr (assoc 'http-flag ss)))))
 
   ;; '((header . header-length) ...)
   (define *headers*
