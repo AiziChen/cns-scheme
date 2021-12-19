@@ -49,7 +49,7 @@
 
   (define (http-header? bv)
     (ormap (lambda (h)
-             (starts-with bytevector-u8-ref bv (car h) (cdr h)))
+             (fstarts-with? bytevector-u8-ref bv (car h) (cdr h)))
       *headers*))
 
   (define (response-header bv)

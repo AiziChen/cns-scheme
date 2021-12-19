@@ -1,7 +1,7 @@
 #!chezscheme
 (library (tcp)
   (export
-    process-tcpsession)
+   process-tcpsession)
   (import
    (chezscheme)
    (cipher)
@@ -13,7 +13,7 @@
     (define proxy (get-proxy bv))
     (when proxy
       (let ([host (car proxy)]
-            [port (cadr proxy)])
+            [port (cdr proxy)])
         (cond
          [(not host)
           (close-output-port op)]
@@ -41,8 +41,10 @@
       (if start
           (let ([end (bytevector-u8-index bv start (string->bytevector/utf-8 "\r"))])
             (if end
-                (let* ([host-port (subbytevector bv start end)]
-                       [dehost-port (decrypt-host host-port (get-secret))])
-                  (pregexp-split ":" dehost-port))
+                (let* ([proxy-line (subbytevector bv start end)]
+                       [rs (pregexp-split "\\s*:\\s*" (bytevector->string/utf-8 proxy-line))]
+                       [bvhost-port (decrypt-host (string->bytevector/utf-8 (cadr rs)) (get-secret))]
+                       [host-port (pregexp-split ":" (bytevector->string/utf-8 bvhost-port))])
+                  (cons (car host-port) (cadr host-port)))
                 #f))
           #f))))

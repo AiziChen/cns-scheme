@@ -1,8 +1,8 @@
 #!chezscheme
 (library (cipher)
   (export
-    decrypt-host
-    xor-cipher!)
+   decrypt-host
+   xor-cipher!)
   (import
    (chezscheme)
    (swish base64)
@@ -23,9 +23,11 @@
               (bitwise-xor
                (bitwise-ior (char->integer (string-ref secret rem)) rem)
                b)))))]))
+
   (define (decrypt-host bvhost secret)
     (let ([host (base64-decode-bytevector bvhost)])
-      (car (xor-cipher! host secret)))))
+      (xor-cipher! host secret)
+      host)))
 
 #!eof mats
 (import
@@ -34,6 +36,8 @@
 
 (isolate-mat cipher-test ()
   (define *td* (string->bytevector/utf-8 "hello, world. How are you today?"))
-  (define *secret* "Abc123")
+  (define *secret* "quanyec")
   (let ([en-data (car (xor-cipher! *td* *secret*))])
-    (equal? (car (xor-cipher! en-data *secret*)) *td*)))
+    (equal? (car (xor-cipher! en-data *secret*)) *td*))
+  (let ([en-data (base64-decode-bytevector (string->bytevector/utf-8 "SVtbQUVLX0tAUG8="))])
+    (printf "~a~n" (bytevector->string/utf-8 (car (xor-cipher! en-data *secret*))))))

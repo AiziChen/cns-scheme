@@ -1,12 +1,11 @@
 #!chezscheme
 (library (tools)
   (export
-   bvs-u8-equal?
    bytevector->string/local
    bytevector->string/utf-8
    bytevector-u8-index
    contains
-   starts-with
+   fstarts-with?
    string->bytevector/local
    string->bytevector/utf-8
    subbytevector)
@@ -27,24 +26,17 @@
   (define (bytevector->string/local s)
     (bytevector->string s (native-transcoder)))
 
-  (define (bvs-u8-equal? bv s)
-    (let ([slen (bytevector-length s)])
-      (let lp ([i 0])
-        (if (= i slen)
-          #t
-          (and (equal? (bytevector-u8-ref s i) (bytevector-u8-ref bv i))
-            (lp (+ i 1)))))))
-
   (define bytevector-u8-index
     (case-lambda
-      [(bv s) (bytevector-u8-index bv 0 s)]
-      [(bv index s)
-        (define bvlen (bytevector-length bv))
-        (let lp ([index index])
-          (cond
-            [(= index bvlen) #f]
-            [(bvs-u8-equal? bv s) index]
-            [else (lp (+ index 1))]))]))
+     [(bv s) (bytevector-u8-index bv 0 s)]
+     [(bv index s)
+      (define bvlen (bytevector-length bv))
+      (define slen (bytevector-length s))
+      (let lp ([index index])
+        (cond
+         [(= index bvlen) #f]
+         [(fstarts-with? bytevector-u8-ref bv index s slen) index]
+         [else (lp (+ index 1))]))]))
 
   (define subbytevector
     (case-lambda
@@ -55,13 +47,13 @@
          (cond
           [(= index end) '()]
           [else
-           (cons (bytevector-u8-ref bv start)
+           (cons (bytevector-u8-ref bv index)
              (lp (+ index 1)))])))]))
 
-  (define starts-with
+  (define fstarts-with?
     (case-lambda
      [(ref-p c1 c2 c2len)
-      (starts-with ref-p c1 0 c2 c2len)]
+      (fstarts-with? ref-p c1 0 c2 c2len)]
      [(ref-p c1 c1-start c2 c2len)
       (let lp ([i 0])
         (if (= i c2len)
@@ -73,7 +65,7 @@
     (let lp ([i 0])
       (if (= i c1len)
           #f
-          (or (starts-with ref-p c1 i c2 c2len)
+          (or (fstarts-with? ref-p c1 i c2 c2len)
               (lp (+ i 1)))))))
 
 
@@ -88,14 +80,20 @@
   ;; local charsets convert
   (let ([test-string1-bvs (string->bytevector/local test-string1)])
     (equal? (bytevector->string/local test-string1-bvs) test-string1))
-  ;; `starts-with` test
+  ;; `fstarts-with?` test
   (let ([s "hello, world"]
         [bv #vu8(33  52 3)])
-    (printf "starts-with test #t result1 : ~a~n" (starts-with string-ref s "hello" 5))
-    (printf "starts-with test #t result2 : ~a~n" (starts-with bytevector-u8-ref bv #vu8(33 52) 2)))
+    (printf "fstarts-with? test #t result1 : ~a~n" (fstarts-with? string-ref s "hello" 5))
+    (printf "fstarts-with? test #t result2 : ~a~n" (fstarts-with? bytevector-u8-ref bv #vu8(33 52) 2)))
   ;; `contains` test
   (let ([s "hello, world"])
     (printf "contains test #t result: ~a~n" (contains string-ref s ", wor" (string-length s) (string-length ", wor")))
     (printf "contains test #f result: ~a~n" (contains string-ref s "qwor" (string-length s) (string-length "qwor"))))
+  ;; bytevector-u8-index test
+  (let ([s (string->bytevector/utf-8 "hello, world")])
+    (printf "bytevector-u8-index test result: ~a~n"
+      (bytevector-u8-index s (string->bytevector/utf-8 "wor")))
+    (printf "bytevector-u8-index test result: ~a~n"
+      (bytevector-u8-index s s)))
   )
 

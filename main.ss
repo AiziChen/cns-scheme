@@ -16,7 +16,10 @@
     ;; handle connection
     (let ([http-flag (string->bytevector/utf-8 (get-http-flag))])
       (unless (contains bytevector-u8-ref bv http-flag (bytevector-length http-flag) (string-length (get-http-flag)))
-        (process-tcpsession ip op bv)))]
+        (match (try (process-tcpsession ip op bv))
+          [`(catch ,reason)
+            (printf "Process tcp failed, reason: ~a~n" reason)]
+          [,_ #t])))]
    [else
     (printf "handle udp request...~n")
     (process-udpsession ip op bv)]))
@@ -31,8 +34,8 @@
   (define (init)
     (let ([me self])
       (spawn&link
-        (lambda ()
-          (reader me))))
+       (lambda ()
+         (reader me))))
     `#(ok #f))
   (define (terminate reason state)
     (close-port op)
@@ -91,7 +94,7 @@
    default-help
    [config-file -c --config-file (string "<file>") "specify the configuration file.
 if not specify, default use `config.ss`"]
-    [version -v --version bool "display version"]))
+   [version -v --version bool "display version"]))
 
 (let ([opt (parse-command-line-arguments app-cli)])
   (when (opt 'help)
@@ -105,5 +108,5 @@ if not specify, default use `config.ss`"]
     (run-app (opt 'config-file))]
    [else
     ;;(printf "use default configuration file `config.ss`~n")
-     (run-app "config.ss")]))
+    (run-app "config.ss")]))
 
