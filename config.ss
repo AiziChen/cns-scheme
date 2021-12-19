@@ -1,4 +1,4 @@
-;;; configure file
+;;; configure file with configurations
 ((host . "::")
  (port . 1081)
  (proxy-key . "Meng")

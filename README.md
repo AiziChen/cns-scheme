@@ -3,12 +3,14 @@
 
 ## What is this?
 
-this is CNS in ChezScheme-Swish to replace the Golang implementation to perform more performance and more reliable.
+this is CNS in [ChezScheme-Swish](https://github.com/becls/swish.git)
+to replace the [previous CNS implementation](https://github.com/AiziChen/CNS.git)
+to perform more performance and more reliable.
 
 
 ## Use
 
-without build. you only need to download the binaries in `release`.
+without build. you only need to download the binaries in `releases`.
 
 
 ## Build
