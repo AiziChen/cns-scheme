@@ -9,7 +9,7 @@
    (swish imports)
    (tools))
 
-  (define (process-tcpsession ip op bv)
+  (define (process-tcpsession who ip op bv)
     (define proxy (get-proxy bv))
     (when proxy
       (let ([host (car proxy)]
@@ -22,14 +22,14 @@
           (unless port (set! port 80))
           (let-values ([(dip dop) (connect-tcp host port)])
             ;; start tcp forward
-            (spawn (lambda () (tcp-forward ip dop)))
-            (spawn (lambda () (tcp-forward dip op))))]))))
+            (spawn (lambda () (tcp-forward dip op)))
+            (spawn (lambda () (tcp-forward ip dop))))]))))
 
   (define (tcp-forward ip op)
     (let lp ([data (get-bytevector-some ip)]
              [subi 0])
       (unless (eof-object? data)
-        (let ([rs (xor-cipher! data (get-secret) subi)])
+        (let ([rs (decrypt-data! data subi)])
           (put-bytevector-some op data)
           (flush-output-port op)
           (lp (get-bytevector-some ip) (cdr rs)))))

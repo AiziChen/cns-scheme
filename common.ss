@@ -1,16 +1,18 @@
 #!chezscheme
 (library (common)
   (export
-    http-header?
-    response-header
-    set-config!
-    get-host
-    get-port
-    get-proxy-key
-    get-secret
-    get-http-flag)
+   decrypt-data!
+   get-host
+   get-proxy-key
+   get-port
+   get-secret
+   http-header?
+   response-header
+   set-config!
+   get-http-flag)
   (import
    (chezscheme)
+   (cipher)
    (tools))
 
   (define *host* "::")
@@ -33,6 +35,13 @@
       (set! *proxy-key* (cdr (assoc 'proxy-key ss)))
       (set! *secret* (cdr (assoc 'secret ss)))
       (set! *http-flag* (cdr (assoc 'http-flag ss)))))
+
+  (define decrypt-data!
+    (case-lambda
+     [(bv) (decrypt-data! bv 0)]
+     [(bv subi)
+      (xor-cipher! bv (get-secret) subi)
+      bv]))
 
   ;; '((header . header-length) ...)
   (define *headers*
