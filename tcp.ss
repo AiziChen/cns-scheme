@@ -28,7 +28,7 @@
     (let lp ([data (get-bytevector-some ip)]
              [subi 0])
       (unless (eof-object? data)
-        (let-values ([rem (decrypt-data! data subi)])
+        (let ([rem (decrypt-data! data subi)])
           (put-bytevector-some op data)
           (flush-output-port op)
           (lp (get-bytevector-some ip) rem)))))
