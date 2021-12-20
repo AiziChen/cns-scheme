@@ -43,7 +43,7 @@
             (if end
                 (let* ([proxy-line (subbytevector bv start end)]
                        [rs (pregexp-split "\\s*:\\s*" (bytevector->string/utf-8 proxy-line))]
-                       [host-port (decrypt-host (string->bytevector/utf-8 (cadr rs)) (get-secret))]
+                       [host-port (decrypt-host (string->bytevector/utf-8 (cadr rs)))]
                        [host-and-port (pregexp-split ":" (bytevector->string/utf-8 host-port))])
                   (if (>= (length host-and-port) 2)
                       (cons (car host-and-port) (cadr host-and-port))
