@@ -43,9 +43,9 @@
      [(bv) (decrypt-data! bv 0)]
      [(bv subi) (xor-cipher! bv (get-secret) subi)]))
 
-  (define (decrypt-host bvhost secret)
+  (define (decrypt-host bvhost)
     (let ([host (base64-decode-bytevector bvhost)])
-      (xor-cipher! host secret)
+      (xor-cipher! host (get-secret))
       host))
 
   ;; '((header . header-length) ...)
