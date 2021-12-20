@@ -1,11 +1,9 @@
 #!chezscheme
 (library (cipher)
   (export
-   decrypt-host
    xor-cipher!)
   (import
    (chezscheme)
-   (swish base64)
    (tools))
   ;;; data: mutable bytevector
   ;;; secret: password string
@@ -16,18 +14,14 @@
       (let ([data-len (bytevector-length data)]
             [secret-len (string-length secret)])
         (do ([i 0 (+ i 1)])
-            ((= i data-len) (cons data (remainder (+ subi i) secret-len)))
+            ((= i data-len) (remainder (+ subi i) secret-len))
           (let ([rem (remainder (+ subi i) secret-len)]
                 [b (bytevector-u8-ref data i)])
             (bytevector-u8-set! data i
               (bitwise-xor
                (bitwise-ior (char->integer (string-ref secret rem)) rem)
                b)))))]))
-
-  (define (decrypt-host bvhost secret)
-    (let ([host (base64-decode-bytevector bvhost)])
-      (xor-cipher! host secret)
-      host)))
+  )
 
 #!eof mats
 (import
@@ -37,7 +31,11 @@
 (isolate-mat cipher-test ()
   (define *td* (string->bytevector/utf-8 "hello, world. How are you today?"))
   (define *secret* "quanyec")
-  (let ([en-data (car (xor-cipher! *td* *secret*))])
-    (equal? (car (xor-cipher! en-data *secret*)) *td*))
+  (let ([td *td*])
+    (printf "data: ~a~n" (bytevector->string/utf-8 td))
+    (xor-cipher! td *secret*)
+    (xor-cipher! td *secret*)
+    (printf "de-data: ~a~n" (bytevector->string/utf-8 td)))
   (let ([en-data (base64-decode-bytevector (string->bytevector/utf-8 "SVtbQUVLX0tAUG8="))])
-    (printf "~a~n" (bytevector->string/utf-8 (car (xor-cipher! en-data *secret*))))))
+    (xor-cipher! en-data *secret*)
+    (printf "~a~n" (bytevector->string/utf-8 en-data))))

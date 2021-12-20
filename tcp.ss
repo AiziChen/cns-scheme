@@ -18,23 +18,23 @@
          [(not host)
           (close-output-port op)]
          [else
-          (printf "proxy host: ~a~n" host)
+          (printf "proxy host: ~a:~a~n" host port)
           (unless port (set! port 80))
           (let-values ([(dip dop) (connect-tcp host port)])
             ;; start tcp forward
             (spawn (lambda () (tcp-forward dip op)))
-            (spawn (lambda () (tcp-forward ip dop))))]))))
+            (tcp-forward ip dop)
+            (close-output-port dop)
+            (close-input-port dip))]))))
 
   (define (tcp-forward ip op)
     (let lp ([data (get-bytevector-some ip)]
              [subi 0])
       (unless (eof-object? data)
-        (let ([rs (decrypt-data! data subi)])
+        (let-values ([rem (decrypt-data! data subi)])
           (put-bytevector-some op data)
           (flush-output-port op)
-          (lp (get-bytevector-some ip) (cdr rs)))))
-    (close-input-port ip)
-    (close-output-port op))
+          (lp (get-bytevector-some ip) rem)))))
 
   (define (get-proxy bv)
     (let ([start (bytevector-u8-index bv (string->bytevector/utf-8 (get-proxy-key)))])
@@ -43,8 +43,10 @@
             (if end
                 (let* ([proxy-line (subbytevector bv start end)]
                        [rs (pregexp-split "\\s*:\\s*" (bytevector->string/utf-8 proxy-line))]
-                       [bvhost-port (decrypt-host (string->bytevector/utf-8 (cadr rs)) (get-secret))]
-                       [host-port (pregexp-split ":" (bytevector->string/utf-8 bvhost-port))])
-                  (cons (car host-port) (cadr host-port)))
+                       [host-port (decrypt-host (string->bytevector/utf-8 (cadr rs)) (get-secret))]
+                       [host-and-port (pregexp-split ":" (bytevector->string/utf-8 host-port))])
+                  (if (>= (length host-and-port) 2)
+                      (cons (car host-and-port) (cadr host-and-port))
+                      #t))
                 #f))
           #f))))

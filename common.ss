@@ -2,6 +2,7 @@
 (library (common)
   (export
    decrypt-data!
+   decrypt-host
    get-host
    get-proxy-key
    get-port
@@ -13,6 +14,7 @@
   (import
    (chezscheme)
    (cipher)
+   (swish base64)
    (tools))
 
   (define *host* "::")
@@ -39,9 +41,12 @@
   (define decrypt-data!
     (case-lambda
      [(bv) (decrypt-data! bv 0)]
-     [(bv subi)
-      (xor-cipher! bv (get-secret) subi)
-      bv]))
+     [(bv subi) (xor-cipher! bv (get-secret) subi)]))
+
+  (define (decrypt-host bvhost secret)
+    (let ([host (base64-decode-bytevector bvhost)])
+      (xor-cipher! host secret)
+      host))
 
   ;; '((header . header-length) ...)
   (define *headers*
