@@ -22,7 +22,8 @@
             (spawn (lambda () (tcp-forward dip op)))
             (tcp-forward ip dop)
             (close-output-port dop)
-            (close-input-port dip))))))
+            (close-input-port dip)
+	    (send who `#(close)))))))
 
   (define (tcp-forward ip op)
     (let lp ([data (get-bytevector-some ip)]

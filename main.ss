@@ -43,7 +43,11 @@
     'ok)
   (define (handle-call msg from state) (match msg))
   (define (handle-cast msg state) (match msg))
-  (define (handle-info msg state) (match msg))
+  (define (handle-info msg state)
+    (match msg
+      [#(close)
+       `#(no-reply ,state)]
+      [_ #f]))
   (gen-server:start&link #f))
 
 ;;; New Connection handler
