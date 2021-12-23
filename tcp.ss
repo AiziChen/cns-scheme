@@ -11,18 +11,28 @@
 
   (define (process-tcpsession who ip op bv)
     (define proxy (get-proxy bv))
-    (when proxy
-      (let ([host (car proxy)]
-            [port (cdr proxy)])
-        (when host
-          (printf "proxy host: ~a:~a~n" host port)
-          (unless port (set! port 80))
-          (let-values ([(dip dop) (connect-tcp host port)])
-            ;; start tcp forward
-            (spawn (lambda () (tcp-forward dip op)))
-            (tcp-forward ip dop)
-            (close-output-port dop)
-            (close-input-port dip))))))
+    (if proxy
+        (let ([host (car proxy)]
+              [port (cdr proxy)])
+          (when host
+            (printf "proxy host: ~a:~a~n" host port)
+            (unless port (set! port 80))
+            (match
+             (try
+              (let-values ([(dip dop) (connect-tcp host port)])
+                ;; start tcp forward
+                (spawn (lambda () (tcp-forward dip op)))
+                (tcp-forward ip dop)
+                (close-output-port dop)
+                (close-input-port dip)))
+             [#(catch ,e)
+              (put-bytevector op
+                (string->bytevector/utf-8
+                 (string-append "Proxy address [" host ":" port "] ResolveTCP() error")))
+              (flush-output-port op)])))
+        (begin
+          (put-bytevector-some op (string->bytevector/utf-8 "No proxy host"))
+          (flush-output-port op))))
 
   (define (tcp-forward ip op)
     (let lp ([data (get-bytevector-some ip)]
