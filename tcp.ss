@@ -25,12 +25,13 @@
                 (tcp-forward ip dop)
                 (close-output-port dop)
                 (close-input-port dip)
-                (send who `#(close)))))))))
-             [#(catch ,e)
+                (send who `#(close))))
+             [`(catch ,_)
               (put-bytevector op
                 (string->bytevector/utf-8
                  (string-append "Proxy address [" host ":" port "] ResolveTCP() error")))
-              (flush-output-port op)])))
+              (flush-output-port op)]
+             [,_ #t])))
         (begin
           (put-bytevector-some op (string->bytevector/utf-8 "No proxy host"))
           (flush-output-port op))))
