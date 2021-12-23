@@ -24,7 +24,8 @@
                 (spawn (lambda () (tcp-forward dip op)))
                 (tcp-forward ip dop)
                 (close-output-port dop)
-                (close-input-port dip)))
+                (close-input-port dip)
+                (send who `#(close)))))))))
              [#(catch ,e)
               (put-bytevector op
                 (string->bytevector/utf-8
