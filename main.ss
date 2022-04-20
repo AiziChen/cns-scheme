@@ -14,7 +14,7 @@
     (put-bytevector op (response-header bv))
     (flush-output-port op)
     ;; handle connection
-    (let ([http-flag (string->bytevector/utf-8 (get-http-flag))])
+    (let ([http-flag (string->utf8 (get-http-flag))])
       (unless (contains bytevector-u8-ref bv http-flag (bytevector-length http-flag) (string-length (get-http-flag)))
         (match (try (process-tcpsession who ip op bv))
           [`(catch ,reason)

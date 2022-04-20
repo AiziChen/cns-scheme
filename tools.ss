@@ -1,30 +1,13 @@
 #!chezscheme
 (library (tools)
   (export
-   bytevector->string/local
-   bytevector->string/utf-8
    bytevector-u8-index
    contains
    fstarts-with?
-   string->bytevector/local
-   string->bytevector/utf-8
    subbytevector)
   (import
    (chezscheme))
 
-  (define *utf-8-transcoder* (make-transcoder (utf-8-codec)))
-
-  (define (string->bytevector/utf-8 bv)
-    (string->bytevector bv *utf-8-transcoder*))
-
-  (define (string->bytevector/local bv)
-    (string->bytevector bv (native-transcoder)))
-
-  (define (bytevector->string/utf-8 s)
-    (bytevector->string s *utf-8-transcoder*))
-
-  (define (bytevector->string/local s)
-    (bytevector->string s (native-transcoder)))
 
   (define bytevector-u8-index
     (case-lambda
@@ -74,15 +57,9 @@
 
 (isolate-mat tools-test ()
   (define test-string1 "hello, world")
-  ;; utf-8 charsets convert
-  (let ([test-string1-bvs (string->bytevector/utf-8 test-string1)])
-    (equal? (bytevector->string/utf-8 test-string1-bvs) test-string1))
-  ;; local charsets convert
-  (let ([test-string1-bvs (string->bytevector/local test-string1)])
-    (equal? (bytevector->string/local test-string1-bvs) test-string1))
   ;; `fstarts-with?` test
   (let ([s "hello, world"]
-        [bv #vu8(33  52 3)])
+        [bv #vu8(33 52 3)])
     (printf "fstarts-with? test #t result1 : ~a~n" (fstarts-with? string-ref s "hello" 5))
     (printf "fstarts-with? test #t result2 : ~a~n" (fstarts-with? bytevector-u8-ref bv #vu8(33 52) 2)))
   ;; `contains` test
@@ -90,9 +67,9 @@
     (printf "contains test #t result: ~a~n" (contains string-ref s ", wor" (string-length s) (string-length ", wor")))
     (printf "contains test #f result: ~a~n" (contains string-ref s "qwor" (string-length s) (string-length "qwor"))))
   ;; bytevector-u8-index test
-  (let ([s (string->bytevector/utf-8 "hello, world")])
+  (let ([s (string->utf8 "hello, world")])
     (printf "bytevector-u8-index test result: ~a~n"
-      (bytevector-u8-index s (string->bytevector/utf-8 "wor")))
+      (bytevector-u8-index s (string->utf8 "wor")))
     (printf "bytevector-u8-index test result: ~a~n"
       (bytevector-u8-index s s)))
   )

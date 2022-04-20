@@ -14,7 +14,7 @@
   (import
    (chezscheme)
    (cipher)
-   (swish base64)
+   (swish imports)
    (tools))
 
   (define *host* "::")
@@ -50,16 +50,16 @@
 
   ;; '((header . header-length) ...)
   (define *headers*
-    (map (lambda (v) (cons (string->bytevector/utf-8 v) (string-length v)))
+    (map (lambda (v) (cons (string->utf8 v) (string-length v)))
       '("CONNECT" "GET" "POST" "HEAD" "PUT" "COPY"
         "DELETE" "MOVE" "OPTIONS" "LINK" "UNLINK"
          "TRACE" "WRAPPER")))
   (define *web-socket-header*
     (let ([name "WebSocket"])
-      (cons (string->bytevector/utf-8 name) (string-length name))))
+      (cons (string->utf8 name) (string-length name))))
   (define *connect-header*
     (let ([name "CON"])
-      (cons (string->bytevector/utf-8 name) (string-length name))))
+      (cons (string->utf8 name) (string-length name))))
 
   (define (http-header? bv)
     (ormap (lambda (h)
@@ -70,12 +70,12 @@
     (cond
      [(contains bytevector-u8-ref bv (car *web-socket-header*)
         (bytevector-length bv) (cdr *web-socket-header*))
-      (string->bytevector/utf-8 "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: CuteBi Network Tunnel, (%>w<%)\r\n\r\n")]
+      (string->utf8 "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: CuteBi Network Tunnel, (%>w<%)\r\n\r\n")]
      [(contains bytevector-u8-ref bv (car *connect-header*)
         (bytevector-length bv) (cdr *connect-header*))
-      (string->bytevector/utf-8 "HTTP/1.1 200 Connection established\r\nServer: CuteBi Network Tunnel, (%>w<%)\r\nConnection: keep-alive\r\n\r\n")]
+      (string->utf8 "HTTP/1.1 200 Connection established\r\nServer: CuteBi Network Tunnel, (%>w<%)\r\nConnection: keep-alive\r\n\r\n")]
      [else
-      (string->bytevector/utf-8 "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nServer: CuteBi Network Tunnel, (%>w<%)\r\nConnection: keep-alive\r\n\r\n")]))
+      (string->utf8 "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nServer: CuteBi Network Tunnel, (%>w<%)\r\nConnection: keep-alive\r\n\r\n")]))
 
   )
 
@@ -87,5 +87,5 @@
 (isolate-mat common-test ()
   (let ([content1 "GET / HTTP/1.1\r\n"]
         [content2 "WS / HTTP/1.1\r\n"])
-    (printf "content1: ~a~n" (http-header? (string->bytevector/utf-8 content1)))
-    (printf "content2: ~a~n" (http-header? (string->bytevector/utf-8 content2)))))
+    (printf "content1: ~a~n" (http-header? (string->utf8 content1)))
+    (printf "content2: ~a~n" (http-header? (string->utf8 content2)))))
