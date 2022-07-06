@@ -9,7 +9,7 @@
    (swish imports)
    (tools))
 
-  (define (process-tcpsession who ip op bv)
+  (define (process-tcpsession ip op bv)
     (define proxy (get-proxy bv))
     (if proxy
         (let ([host (car proxy)]
@@ -24,12 +24,11 @@
                 (spawn (lambda () (tcp-forward dip op)))
                 (tcp-forward ip dop)
                 (close-output-port dop)
-                (close-input-port dip)
-                (send who `#(close))))
+                (close-input-port dip)))
              [`(catch ,_)
               (put-bytevector op
                 (string->utf8
-                 (string-append "Proxy address [" host ":" port "] ResolveTCP() error")))
+                 (string-append "Proxy address [" host ":" port "] resolve tcp error")))
               (flush-output-port op)]
              [,_ #t])))
         (begin
